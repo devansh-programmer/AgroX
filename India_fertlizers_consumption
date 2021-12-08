@@ -1,0 +1,71 @@
+import seaborn as sns
+import matplotlib.pyplot as plt
+# Load The Data from CSV to pandas format
+data = pd.read_csv('/kaggle/input/fertilizers-by-product-fao/FertilizersProduct.csv',encoding='ISO-8859-1')
+data.head()
+
+#Visualising The Last 5 Row of Data
+data.tail()
+
+# Counting All the Country In dataset
+data["Area"].nunique()
+
+India_data = data.loc[data.Area == 'India'] #seprate the data 
+data = data.loc[data.Area != 'India']
+
+India_data.head()
+
+# Drop irrelevant columns
+India_data.drop(['Area Code','Item Code', 'Element Code', 'Year Code', 'Flag'],inplace=True,axis=1)
+
+India_data.head() # visualisisng the first five row
+
+India_data.Element.value_counts()
+
+India_data.Item.value_counts()
+data.Item.value_counts()
+data.Item.nunique()
+agr_usage = India_data.loc[India_data.Element == 'Agricultural Use']
+agr_usage.sort_values(by=['Value'], ascending=False).head()
+plt.figure(figsize=(25,25))
+sns.barplot(x='Year',
+    y='Value',
+    hue='Item',
+    data=agr_usage
+)
+plt.figure(figsize=(20,15))
+sns.lineplot(x= 'Year',y = 'Value',hue = 'Item',data=agr_usage)
+plt.show()
+
+#total Fertlizers use in Agro Industry in 2017 (Lack of data for 2018, 2019, and 2020. Hence our prediction is based on the following) 
+usage_global = data.loc[(data.Element == 'Agricultural Use')  & (data.Year == 2017)]
+countries = data.Area.unique()
+cdf = []
+adf = []
+for country in countries:
+    df_aux = usage_global.loc[usage_global.Area == country]
+    amount = df_aux.Value.sum()
+    cdf.append(country)
+    adf.append(amount)
+df_fert = pd.DataFrame({'Country': cdf, 'Amount': adf})
+df_fert = df_fert.sort_values(by=['Amount'], ascending=False)
+
+plt.figure(figsize=(25,25))
+sns.barplot(data= df_fert.iloc[:15,:],x = "Country",y = 'Amount')
+plt.show()
+
+#Production and Export in India 
+fert_prod = India_data.loc[India_data.Element == 'Production']
+fert_prod.sort_values(by=['Value'], ascending=False).head()
+plt.figure(figsize=(10,10))
+sns.barplot(data= fert_prod.iloc[:,:10],y = "Item",x = 'Value')
+plt.show()
+fert_expo = India_data.loc[India_data.Element == 'Export Quantity']
+fert_expo.sort_values(by=['Value'], ascending=False).head()
+
+plt.figure(figsize=(10,10))
+sns.barplot(data= fert_expo.iloc[:,:10],y = "Item",x = 'Value')
+plt.show()
+plt.figure(figsize=(10,10))
+sns.barplot(data= fert_expo,y = "Item",x = 'Year')
+plt.show()
